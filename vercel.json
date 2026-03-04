@@ -11,10 +11,10 @@
       "config": { "distDir": "dist" } 
     }
   ],
-  "rewrites": [
-    { "source": "/auth/(.*)", "destination": "Backend/app/main.py" },
-    { "source": "/api/(.*)", "destination": "Backend/app/main.py" },
+  "routes": [
+    { "src": "/auth/(.*)", "dest": "Backend/app/main.py" },
+    { "src": "/api/(.*)", "dest": "Backend/app/main.py" },
     { "handle": "filesystem" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
