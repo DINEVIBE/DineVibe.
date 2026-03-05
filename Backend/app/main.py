@@ -58,10 +58,20 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     return response
 
-app.include_router(auth.router, prefix="/api")
-app.include_router(user.router, prefix="/api/user")
-app.include_router(admin.router, prefix="/api/admin")
-app.include_router(mfa.router, prefix="/api/mfa")
+
+
+
+# app/routes/auth.py
+router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+# app/routes/user.py
+router = APIRouter(prefix="/api/user", tags=["user"])
+
+# app/routes/admin.py
+router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+# app/routes/mfa.py
+router = APIRouter(prefix="/api/mfa", tags=["mfa"])   
 
 @app.get("/")
 async def health_check():

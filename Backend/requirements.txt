@@ -8,9 +8,14 @@ psycopg2-binary
 pydantic>=2.0
 pydantic-settings
 
-python-jose
+python-jose[cryptography]
 passlib[bcrypt]
+bcrypt
 
 python-dotenv
-
 alembic
+
+pyotp
+twilio
+requests
+httpx

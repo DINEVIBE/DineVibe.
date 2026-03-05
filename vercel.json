@@ -3,12 +3,17 @@
   "builds": [
     {
       "src": "Backend/app/main.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
     },
     {
       "src": "Frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": {
+        "distDir": "Frontend/dist"
+      }
     }
   ],
   "rewrites": [
@@ -18,7 +23,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "Frontend/$1"
+      "destination": "/index.html"
     }
   ]
 }
