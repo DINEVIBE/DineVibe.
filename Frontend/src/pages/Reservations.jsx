@@ -43,7 +43,6 @@ export default function Reservations() {
     return matchesSearch && matchesStatus;
   });
 
-  // Status → badge class mapping
   const getBadgeClass = (status) => {
     if (status === "confirmed") return "success";
     if (status === "pending") return "warning";
@@ -53,11 +52,8 @@ export default function Reservations() {
 
   return (
     <div className="dashboard-content">
-
-      {/* PAGE HEADER */}
       <h2 className="page-title">Reservations Management</h2>
 
-      {/* FILTERS */}
       <div
         style={{
           display: "flex",
@@ -94,37 +90,28 @@ export default function Reservations() {
           <option value="cancelled">Cancelled</option>
         </select>
 
-        <button className="primary-btn">
-          + New Reservation
-        </button>
+        <button className="primary-btn">+ New Reservation</button>
       </div>
 
-      {/* STATS */}
       <div className="metrics-grid">
-
         <div className="metric-card">
           <h4>Total Today</h4>
           <p className="metric-number">38</p>
         </div>
-
         <div className="metric-card">
           <h4>Pending</h4>
           <p className="metric-number">5</p>
         </div>
-
         <div className="metric-card">
           <h4>Confirmed</h4>
           <p className="metric-number">29</p>
         </div>
-
         <div className="metric-card">
           <h4>Cancelled</h4>
           <p className="metric-number">4</p>
         </div>
-
       </div>
 
-      {/* TABLE */}
       <div className="section-card">
         <div className="table-wrapper">
           <table>
@@ -147,18 +134,23 @@ export default function Reservations() {
                   <td>{r.date}</td>
                   <td>{r.time}</td>
                   <td>
-                    <span className={`badge ${getBadgeClass(r.status)}`}>
-                      {r.status.charAt(0).toUpperCase() +
-                        r.status.slice(1)}
+                    {/* ✅ STATUS FONT ENLARGED HERE */}
+                    <span 
+                      className={`badge ${getBadgeClass(r.status)}`}
+                      style={{ 
+                        fontSize: "14px", 
+                        fontWeight: "800", 
+                        padding: "6px 12px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px"
+                      }}
+                    >
+                      {r.status}
                     </span>
                   </td>
                   <td>
-                    <button className="small-btn confirm">
-                      Confirm
-                    </button>
-                    <button className="small-btn cancel">
-                      Cancel
-                    </button>
+                    <button className="small-btn confirm">Confirm</button>
+                    <button className="small-btn cancel">Cancel</button>
                   </td>
                 </tr>
               ))}
@@ -174,7 +166,6 @@ export default function Reservations() {
           </table>
         </div>
       </div>
-
     </div>
   );
 }

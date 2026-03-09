@@ -1,223 +1,678 @@
-import { useState } from 'react';
-import {
-  CheckCircle, Circle, Clock, AlertCircle, TicketCheck,
-  CalendarDays, ScrollText, ChevronRight, User,
-} from 'lucide-react';
+// StaffDashboard.jsx
+import React, { useMemo, useState } from "react";
+import { Check, Plus, X, Ticket } from "lucide-react";
 
-const tasks = [
-  { id: 1, title: 'Restock bar inventory',       priority: 'high',   done: false, due: 'Today 3PM'  },
-  { id: 2, title: 'Clean patio seating area',    priority: 'medium', done: true,  due: 'Today 12PM' },
-  { id: 3, title: 'Update digital menu display', priority: 'low',    done: false, due: 'Tomorrow'   },
-  { id: 4, title: 'Call florist for decor',      priority: 'medium', done: false, due: 'Today 5PM'  },
-  { id: 5, title: 'Prepare weekend event setup', priority: 'high',   done: false, due: 'Fri 9AM'    },
-  { id: 6, title: 'Staff briefing notes',        priority: 'low',    done: true,  due: 'Done'       },
-  { id: 7, title: 'Check reservation system',    priority: 'high',   done: true,  due: 'Done'       },
+/* =========================
+   TASKS (My Tasks)
+========================= */
+
+// Matches screenshot baseline: 7 tasks total, 2 pending, 5 completed
+const initialTasks = [
+  { id: 1, title: "Restock bar inventory", due: "Today 3PM", priority: "high", done: false },
+  { id: 2, title: "Clean patio seating area", due: "Today 12PM", priority: "medium", done: true },
+  { id: 3, title: "Update digital menu display", due: "Tomorrow", priority: "low", done: true },
+  { id: 4, title: "Call florist for decor", due: "Today 5PM", priority: "medium", done: true },
+  { id: 5, title: "Prepare weekend event setup", due: "Fri 9AM", priority: "high", done: false },
+  { id: 6, title: "Staff briefing notes", due: "Done", priority: "low", done: true },
+  { id: 7, title: "Check reservation system", due: "Done", priority: "high", done: true }
 ];
 
-const tickets = [
-  { id: 1, title: 'POS system not responding',   status: 'open',        priority: 'high',   created: '1h ago' },
-  { id: 2, title: 'Wi-Fi password reset needed', status: 'in_progress', priority: 'medium', created: '3h ago' },
-  { id: 3, title: 'Menu allergy info update',    status: 'resolved',    priority: 'low',    created: '1d ago' },
-];
-
-const schedule = [
-  { day: 'Mon', shift: '10AM – 6PM', role: 'Floor Staff' },
-  { day: 'Tue', shift: 'Off',        role: '—'           },
-  { day: 'Wed', shift: '12PM – 8PM', role: 'Bar Support' },
-  { day: 'Thu', shift: '10AM – 6PM', role: 'Floor Staff' },
-  { day: 'Fri', shift: '4PM – 12AM', role: 'Event Staff' },
-  { day: 'Sat', shift: '4PM – 12AM', role: 'Event Staff' },
-  { day: 'Sun', shift: 'Off',        role: '—'           },
-];
-
-const logs = [
-  { id: 1, action: 'Checked in',                              time: 'Today 10:02 AM',    type: 'info'    },
-  { id: 2, action: 'Completed task: Menu allergy info update', time: 'Today 11:15 AM',   type: 'success' },
-  { id: 3, action: 'Opened ticket #DV-4021',                  time: 'Today 11:47 AM',   type: 'warning' },
-  { id: 4, action: 'Checked out',                             time: 'Yesterday 6:00 PM', type: 'info'    },
-];
-
-export default function StaffDashboard({ user, activeTab }) {
-  const [taskList, setTaskList] = useState(tasks);
-  const toggle = (id) => setTaskList(t => t.map(x => x.id === id ? { ...x, done: !x.done } : x));
-
-  if (activeTab === 'tasks') {
-    const pending   = taskList.filter(t => !t.done);
-    const completed = taskList.filter(t => t.done);
-    return (
-      <div className="max-w-2xl space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">My Tasks</h2>
-          <p className="text-sm text-gray-500 mt-1">{pending.length} pending · {completed.length} completed</p>
-        </div>
-        <div className="space-y-2">
-          {taskList.map((t) => (
-            <button key={t.id} onClick={() => toggle(t.id)}
-              className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition ${t.done ? 'bg-gray-50 border-gray-100' : 'bg-white border-gray-100 hover:border-green-200'}`}>
-              {t.done
-                ? <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
-                : <Circle className="w-5 h-5 text-gray-300 shrink-0" />}
-              <div className="flex-1">
-                <p className={`font-medium text-sm ${t.done ? 'line-through text-gray-400' : 'text-gray-900'}`}>{t.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{t.due}</p>
-              </div>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                t.priority === 'high' ? 'bg-red-100 text-red-600' :
-                t.priority === 'medium' ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-500'}`}>
-                {t.priority}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-    );
+function getPriorityPill(priority) {
+  switch (priority) {
+    case "high":
+      return { bg: "#fee2e2", fg: "#ef4444", text: "high" };
+    case "medium":
+      return { bg: "#fef3c7", fg: "#d97706", text: "medium" };
+    default:
+      return { bg: "#f1f5f9", fg: "#64748b", text: "low" };
   }
+}
 
-  if (activeTab === 'tickets') {
-    return (
-      <div className="max-w-2xl space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Support Tickets</h2>
-          <p className="text-sm text-gray-500 mt-1">{tickets.filter(t => t.status !== 'resolved').length} open</p>
-        </div>
-        {tickets.map((t) => (
-          <div key={t.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex items-start gap-4">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-              t.status === 'open' ? 'bg-red-100' : t.status === 'in_progress' ? 'bg-blue-100' : 'bg-green-100'}`}>
-              <TicketCheck className={`w-5 h-5 ${
-                t.status === 'open' ? 'text-red-500' : t.status === 'in_progress' ? 'text-blue-500' : 'text-green-500'}`} />
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-gray-900 text-sm">{t.title}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{t.created}</p>
-            </div>
-            <div className="text-right space-y-1">
-              <span className={`block text-xs font-semibold px-2 py-0.5 rounded-full ${
-                t.status === 'open' ? 'bg-red-100 text-red-600' :
-                t.status === 'in_progress' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
-                {t.status.replace('_', ' ')}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (activeTab === 'schedule') {
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
-    return (
-      <div className="max-w-md space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900">My Schedule</h2>
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-          {schedule.map(({ day, shift, role }, i) => (
-            <div key={day} className={`flex items-center gap-4 px-5 py-4 ${i < schedule.length - 1 ? 'border-b border-gray-50' : ''} ${day === today ? 'bg-green-50' : ''}`}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${day === today ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                {day}
-              </div>
-              <div className="flex-1">
-                <p className={`font-semibold text-sm ${shift === 'Off' ? 'text-gray-400' : 'text-gray-900'}`}>{shift}</p>
-                <p className="text-xs text-gray-500">{role}</p>
-              </div>
-              {day === today && <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">Today</span>}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (activeTab === 'logs') {
-    return (
-      <div className="max-w-xl space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900">Activity Logs</h2>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-4">
-          {logs.map((l) => (
-            <div key={l.id} className="flex items-start gap-3">
-              <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${l.type === 'success' ? 'bg-green-500' : l.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-400'}`} />
-              <div>
-                <p className="text-sm font-medium text-gray-900">{l.action}</p>
-                <p className="text-xs text-gray-400">{l.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+function TaskRow({ task, onToggle }) {
+  const p = getPriorityPill(task.priority);
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-6 text-white">
-        <p className="text-sm opacity-80">Staff Dashboard</p>
-        <h2 className="text-2xl font-bold mt-1">{user?.username || 'Staff'}</h2>
-        <p className="text-sm opacity-75 mt-1">Floor Staff · Bella Vista Trattoria</p>
-        <div className="flex gap-6 mt-4">
-          {[{ v: '4', l: 'Tasks Today' }, { v: '2', l: 'Open Tickets' }, { v: 'Wed', l: 'Next Shift' }].map(s => (
-            <div key={s.l}><p className="text-lg font-bold">{s.v}</p><p className="text-xs opacity-75">{s.l}</p></div>
-          ))}
+    <div
+      onClick={onToggle}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onToggle();
+      }}
+      style={{
+        width: "100%",
+        boxSizing: "border-box",
+        background: "#ffffff",
+        border: "1px solid #eef2f7",
+        borderRadius: 16,
+        padding: "18px 18px",
+        display: "flex",
+        alignItems: "center",
+        gap: 16,
+        cursor: "pointer",
+        boxShadow: "0 1px 0 rgba(15, 23, 42, 0.02)"
+      }}
+    >
+      {/* Checkbox */}
+      <div
+        style={{
+          width: 18,
+          height: 18,
+          borderRadius: 999,
+          border: task.done ? "2px solid #22c55e" : "2px solid #cbd5e1",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          background: "#fff"
+        }}
+      >
+        {task.done ? <Check size={12} color="#22c55e" strokeWidth={3} /> : null}
+      </div>
+
+      {/* Title + Due */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 800,
+            color: task.done ? "#94a3b8" : "#0f172a",
+            textDecoration: task.done ? "line-through" : "none",
+            lineHeight: 1.2,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          }}
+        >
+          {task.title}
+        </div>
+        <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#94a3b8" }}>
+          {task.due}
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Tasks Pending',   value: '4',  icon: AlertCircle, color: 'red'   },
-          { label: 'Tasks Completed', value: '3',  icon: CheckCircle, color: 'green' },
-          { label: 'Open Tickets',    value: '2',  icon: TicketCheck, color: 'blue'  },
-          { label: 'Hours This Week', value: '28', icon: Clock,       color: 'amber' },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-            <div className={`w-9 h-9 rounded-xl mb-3 flex items-center justify-center
-              ${color === 'red' ? 'bg-red-100 text-red-500' :
-                color === 'green' ? 'bg-green-100 text-green-500' :
-                color === 'blue' ? 'bg-blue-100 text-blue-500' : 'bg-amber-100 text-amber-500'}`}>
-              <Icon className="w-4 h-4" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 text-green-400" /> Today's Schedule
-          </h3>
-          {schedule.slice(0, 3).map(s => (
-            <div key={s.day} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-              <Clock className="w-4 h-4 text-gray-300" />
-              <span className="text-sm text-gray-700">{s.shift}</span>
-              <span className="text-xs text-gray-400 ml-auto">{s.role}</span>
-            </div>
-          ))}
-        </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <ScrollText className="w-4 h-4 text-green-400" /> Recent Activity
-          </h3>
-          {logs.slice(0, 3).map(l => (
-            <div key={l.id} className="flex items-start gap-2 py-2 border-b border-gray-50 last:border-0">
-              <div className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${l.type === 'success' ? 'bg-green-500' : l.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-400'}`} />
-              <div>
-                <p className="text-xs font-medium text-gray-800">{l.action}</p>
-                <p className="text-xs text-gray-400">{l.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-xl font-bold text-white">
-          {user?.username?.charAt(0) ?? 'S'}
-        </div>
-        <div>
-          <p className="font-bold text-gray-900">{user?.username || 'Staff'}</p>
-          <p className="text-sm text-gray-500">Staff Member · Floor Staff</p>
-        </div>
-        <button className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-semibold hover:bg-green-100 transition">
-          <User className="w-4 h-4" /> View Profile
-        </button>
-        <ChevronRight className="w-4 h-4 text-gray-300" />
-      </div>
+
+      {/* Priority */}
+      <span
+        style={{
+          background: p.bg,
+          color: p.fg,
+          borderRadius: 999,
+          padding: "4px 10px",
+          fontSize: 12,
+          fontWeight: 800,
+          textTransform: "lowercase",
+          flexShrink: 0
+        }}
+      >
+        {p.text}
+      </span>
     </div>
+  );
+}
+
+/* =========================
+   SCHEDULE (My Schedule)
+========================= */
+
+const scheduleData = [
+  { day: "Mon", shift: "10AM – 6PM", role: "Floor Staff", isToday: false, isOff: false },
+  { day: "Tue", shift: "Off", role: "—", isToday: true, isOff: true },
+  { day: "Wed", shift: "12PM – 8PM", role: "Bar Support", isToday: false, isOff: false },
+  { day: "Thu", shift: "10AM – 6PM", role: "Floor Staff", isToday: false, isOff: false },
+  { day: "Fri", shift: "4PM – 12AM", role: "Event Staff", isToday: false, isOff: false },
+  { day: "Sat", shift: "4PM – 12AM", role: "Event Staff", isToday: false, isOff: false },
+  { day: "Sun", shift: "Off", role: "—", isToday: false, isOff: true }
+];
+
+export function StaffSchedule() {
+  return (
+    <div style={pageRootStyle}>
+      <div style={pageInnerStyle}>
+        <h1 style={pageTitleStyle}>My Schedule</h1>
+
+        <div
+          style={{
+            marginTop: 18,
+            width: "100%",
+            maxWidth: 520,
+            background: "#fff",
+            border: "1px solid #eef2f7",
+            borderRadius: 18,
+            overflow: "hidden",
+            boxShadow: "0 2px 0 rgba(15,23,42,0.03)"
+          }}
+        >
+          {scheduleData.map((s, idx) => {
+            const rowBg = s.isToday ? "#ecfdf5" : "#fff";
+            const dayBg = s.isToday ? "#00c389" : "#f1f5f9";
+            const dayFg = s.isToday ? "#fff" : "#334155";
+
+            return (
+              <div
+                key={`${s.day}-${idx}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "18px 18px",
+                  background: rowBg,
+                  borderTop: idx === 0 ? "none" : "1px solid #f1f5f9"
+                }}
+              >
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    background: dayBg,
+                    color: dayFg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 900,
+                    fontSize: 14,
+                    flexShrink: 0
+                  }}
+                >
+                  {s.day}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 900,
+                      color: s.isOff ? "#94a3b8" : "#0f172a",
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {s.shift}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: s.isOff ? "#94a3b8" : "#64748b"
+                    }}
+                  >
+                    {s.role}
+                  </div>
+                </div>
+
+                {s.isToday && (
+                  <span
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: 999,
+                      background: "#dcfce7",
+                      color: "#16a34a",
+                      fontWeight: 900,
+                      fontSize: 12,
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    Today
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <FloatingSupportButton />
+    </div>
+  );
+}
+
+/* =========================
+   TICKETS (Support Tickets)
+========================= */
+
+const tickets = [
+  { id: "DV-4021", title: "POS system not responding", age: "1h ago", status: "open", priority: "high" },
+  { id: "DV-4019", title: "Wi‑Fi password reset needed", age: "3h ago", status: "in progress", priority: "medium" },
+  { id: "DV-4012", title: "Menu allergy info update", age: "1d ago", status: "resolved", priority: "low" }
+];
+
+function statusStyle(status) {
+  const s = status.toLowerCase();
+  if (s === "open") return { chipBg: "#fee2e2", chipFg: "#ef4444", iconBg: "#fee2e2", iconFg: "#ef4444" };
+  if (s === "in progress") return { chipBg: "#dbeafe", chipFg: "#2563eb", iconBg: "#dbeafe", iconFg: "#2563eb" };
+  return { chipBg: "#dcfce7", chipFg: "#16a34a", iconBg: "#dcfce7", iconFg: "#16a34a" };
+}
+
+function priorityStyle(priority) {
+  const p = priority.toLowerCase();
+  if (p === "high") return { chipBg: "#fee2e2", chipFg: "#ef4444" };
+  if (p === "medium") return { chipBg: "#fef3c7", chipFg: "#d97706" };
+  return { chipBg: "#f1f5f9", chipFg: "#94a3b8" };
+}
+
+export function StaffTickets() {
+  const openCount = useMemo(
+    () => tickets.filter((t) => t.status.toLowerCase() !== "resolved").length,
+    []
+  );
+
+  return (
+    <div style={pageRootStyle}>
+      <div style={pageInnerStyle}>
+        <h1 style={pageTitleStyle}>Support Tickets</h1>
+        <div style={pageSubtitleStyle}>{openCount} open</div>
+
+        <div style={{ marginTop: 18, width: "100%", maxWidth: 820 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            {tickets.map((t) => {
+              const ss = statusStyle(t.status);
+              const ps = priorityStyle(t.priority);
+
+              return (
+                <div
+                  key={t.id}
+                  style={{
+                    background: "#fff",
+                    border: "1px solid #eef2f7",
+                    borderRadius: 18,
+                    padding: "18px 18px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 16,
+                    boxShadow: "0 2px 0 rgba(15,23,42,0.03)"
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 14,
+                      background: ss.iconBg,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0
+                    }}
+                  >
+                    <Ticket size={18} color={ss.iconFg} />
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 900,
+                        color: "#0f172a",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                      }}
+                    >
+                      {t.title}
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#94a3b8" }}>
+                      {t.age}
+                    </div>
+                  </div>
+
+                  {/* Right stacked chips (status then priority) */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+                    <span
+                      style={{
+                        padding: "6px 10px",
+                        borderRadius: 999,
+                        background: ss.chipBg,
+                        color: ss.chipFg,
+                        fontWeight: 900,
+                        fontSize: 12,
+                        textTransform: "lowercase",
+                        whiteSpace: "nowrap"
+                      }}
+                    >
+                      {t.status}
+                    </span>
+                    <span
+                      style={{
+                        padding: "6px 10px",
+                        borderRadius: 999,
+                        background: ps.chipBg,
+                        color: ps.chipFg,
+                        fontWeight: 900,
+                        fontSize: 12,
+                        textTransform: "lowercase",
+                        whiteSpace: "nowrap"
+                      }}
+                    >
+                      {t.priority}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <FloatingSupportButton />
+    </div>
+  );
+}
+
+/* =========================
+   ACTIVITY LOGS
+========================= */
+
+const logs = [
+  { dot: "#3b82f6", title: "Checked in", time: "Today 10:02 AM" },
+  { dot: "#22c55e", title: "Completed task: Menu allergy info update", time: "Today 11:15 AM" },
+  { dot: "#f59e0b", title: "Opened ticket #DV-4021", time: "Today 11:47 AM" },
+  { dot: "#3b82f6", title: "Checked out", time: "Yesterday 6:00 PM" }
+];
+
+export function StaffActivityLogs() {
+  return (
+    <div style={pageRootStyle}>
+      <div style={pageInnerStyle}>
+        <h1 style={pageTitleStyle}>Activity Logs</h1>
+
+        <div
+          style={{
+            marginTop: 18,
+            width: "100%",
+            maxWidth: 660,
+            background: "#fff",
+            border: "1px solid #eef2f7",
+            borderRadius: 18,
+            padding: 18,
+            boxShadow: "0 2px 0 rgba(15,23,42,0.03)"
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            {logs.map((l, idx) => (
+              <div key={idx} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 999,
+                    marginTop: 6,
+                    background: l.dot,
+                    flexShrink: 0
+                  }}
+                />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>{l.title}</div>
+                  <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#94a3b8" }}>
+                    {l.time}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <FloatingSupportButton />
+    </div>
+  );
+}
+
+/* =========================
+   DEFAULT EXPORT = TASKS PAGE
+   (use for /home/dashboard)
+========================= */
+
+export default function StaffDashboard() {
+  const [taskList, setTaskList] = useState(initialTasks);
+
+  // Add-task UI state
+  const [showAdd, setShowAdd] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDue, setNewDue] = useState("Today");
+  const [newPriority, setNewPriority] = useState("medium");
+
+  const pending = useMemo(() => taskList.filter((t) => !t.done).length, [taskList]);
+  const completed = useMemo(() => taskList.filter((t) => t.done).length, [taskList]);
+
+  const toggleTask = (id) => {
+    setTaskList((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+  };
+
+  const nextId = useMemo(
+    () => (taskList.length ? Math.max(...taskList.map((t) => t.id)) + 1 : 1),
+    [taskList]
+  );
+
+  const resetAddForm = () => {
+    setNewTitle("");
+    setNewDue("Today");
+    setNewPriority("medium");
+  };
+
+  const addTask = (e) => {
+    e?.preventDefault?.();
+    const title = newTitle.trim();
+    if (!title) return;
+
+    setTaskList((prev) => [
+      { id: nextId, title, due: newDue.trim() || "Today", priority: newPriority, done: false },
+      ...prev
+    ]);
+
+    resetAddForm();
+    setShowAdd(false);
+  };
+
+  const inputStyle = {
+    height: 40,
+    borderRadius: 12,
+    border: "1px solid #e2e8f0",
+    padding: "0 12px",
+    fontSize: 13,
+    fontWeight: 700,
+    color: "#0f172a",
+    outline: "none",
+    background: "#fff",
+    boxSizing: "border-box",
+    width: "100%"
+  };
+
+  return (
+    <div style={pageRootStyle}>
+      <div style={pageInnerStyle}>
+        {/* Header */}
+        <div
+          style={{
+            marginBottom: 18,
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: 12
+          }}
+        >
+          <div>
+            <h1 style={pageTitleStyle}>My Tasks</h1>
+            <div style={pageSubtitleStyle}>
+              {pending} pending · {completed} completed
+            </div>
+          </div>
+
+          {/* Add Task button */}
+          <button
+            type="button"
+            onClick={() => setShowAdd((v) => !v)}
+            style={{
+              height: 40,
+              padding: "0 14px",
+              borderRadius: 12,
+              border: "1px solid #e2e8f0",
+              background: "#fff",
+              color: "#0f172a",
+              cursor: "pointer",
+              fontWeight: 900,
+              fontSize: 13,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              flexShrink: 0
+            }}
+          >
+            {showAdd ? <X size={16} /> : <Plus size={16} />}
+            {showAdd ? "Close" : "Add task"}
+          </button>
+        </div>
+
+        {/* Add Task Panel */}
+        {showAdd && (
+          <form
+            onSubmit={addTask}
+            style={{
+              width: "100%",
+              boxSizing: "border-box",
+              background: "#fff",
+              border: "1px solid #eef2f7",
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 14,
+              boxShadow: "0 1px 0 rgba(15, 23, 42, 0.02)"
+            }}
+          >
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 10 }}>
+              <input
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Task title (e.g., Restock bar inventory)"
+                style={inputStyle}
+                autoFocus
+              />
+              <input
+                value={newDue}
+                onChange={(e) => setNewDue(e.target.value)}
+                placeholder="Due (e.g., Today 3PM)"
+                style={inputStyle}
+              />
+              <select
+                value={newPriority}
+                onChange={(e) => setNewPriority(e.target.value)}
+                style={{ ...inputStyle, cursor: "pointer" }}
+              >
+                <option value="high">high</option>
+                <option value="medium">medium</option>
+                <option value="low">low</option>
+              </select>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 12 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  resetAddForm();
+                  setShowAdd(false);
+                }}
+                style={{
+                  height: 40,
+                  padding: "0 14px",
+                  borderRadius: 12,
+                  border: "1px solid #e2e8f0",
+                  background: "#fff",
+                  cursor: "pointer",
+                  fontWeight: 900,
+                  fontSize: 13,
+                  color: "#64748b"
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                style={{
+                  height: 40,
+                  padding: "0 14px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: "#22c55e",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontWeight: 900,
+                  fontSize: 13,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8
+                }}
+              >
+                <Plus size={16} />
+                Add
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Tasks List */}
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
+          {taskList.map((t) => (
+            <TaskRow key={t.id} task={t} onToggle={() => toggleTask(t.id)} />
+          ))}
+        </div>
+      </div>
+
+      <FloatingSupportButton />
+    </div>
+  );
+}
+
+/* =========================
+   Shared styles/components
+========================= */
+
+const pageRootStyle = {
+  width: "100%",
+  boxSizing: "border-box",
+  background: "transparent",
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'
+};
+
+const pageInnerStyle = {
+  width: "100%",
+  // IMPORTANT: no tight maxWidth here; lets tasks/tickets fill the available main area
+  margin: "0",
+  padding: "6px 0"
+};
+
+const pageTitleStyle = {
+  margin: 0,
+  fontSize: 30,
+  fontWeight: 900,
+  color: "#0f172a",
+  letterSpacing: "-0.02em"
+};
+
+const pageSubtitleStyle = {
+  marginTop: 6,
+  fontSize: 14,
+  fontWeight: 700,
+  color: "#94a3b8"
+};
+
+function FloatingSupportButton() {
+  return (
+    <button
+      type="button"
+      aria-label="Support"
+      style={{
+        position: "fixed",
+        right: 18,
+        bottom: 18,
+        width: 46,
+        height: 46,
+        borderRadius: 999,
+        border: "1px solid #eef2f7",
+        background:
+          "conic-gradient(from 210deg, #8b5cf6, #06b6d4, #22c55e, #f59e0b, #ef4444, #8b5cf6)",
+        boxShadow: "0 18px 40px rgba(15,23,42,0.12)",
+        cursor: "pointer"
+      }}
+      onClick={() => {}}
+    />
   );
 }

@@ -45,7 +45,6 @@ export default function MFA() {
         setManualKey(res.data.manual_key);
       }
     } catch (err) {
-      console.error("MFA Init Error:", err);
       setQrUrl("otpauth://totp/DineVibe:user?secret=JBSWY3DPEHPK3PXP");
       setManualKey("JBSWY3DPEHPK3PXP");
     }
@@ -58,11 +57,10 @@ export default function MFA() {
       const res = await api.post("/api/auth/verify-otp", { email, otp: otp.join("") });
       
       if (res.data.status === "MFA_SETUP_COMPLETE" || res.data.status === "SUCCESS") {
-        // SAVE USER DATA HERE
-        if (res.data.user) {
-          localStorage.setItem("user_name", res.data.user.name);
-          localStorage.setItem("user_email", res.data.user.email);
-        }
+        // ✅ CRITICAL: Save data immediately
+        const userData = res.data.user || {};
+        localStorage.setItem("user_name", userData.username || userData.name || "DineVibe User");
+        localStorage.setItem("user_email", userData.email || email);
 
         setShowSuccess(true);
         
@@ -71,8 +69,14 @@ export default function MFA() {
             navigate("/set-password", { state: { email } });
           } else {
             localStorage.setItem("access_token", res.data.access_token);
-            localStorage.setItem("role", res.data.user.role);
-            navigate("/home/dashboard");
+            
+            // ✅ ROLE SIMULATION TRIGGER
+            if (userData.email === "test@dinevibe.com") {
+              navigate("/select-role"); 
+            } else {
+              localStorage.setItem("role", userData.role || "user");
+              navigate("/home/dashboard");
+            }
           }
         }, 2000);
       }
@@ -96,7 +100,7 @@ export default function MFA() {
       <div className={`auth-card ${firstLogin && method === "authenticator" ? 'setup-mode' : 'login-mode'}`}>
         <h2>Secure Your Account</h2>
         <p className="auth-subtitle">
-          {firstLogin ? "Set up multi-factor authentication to protect your account" : "Enter your verification code"}
+          {firstLogin ? "Set up MFA to protect your account" : "Enter your verification code"}
         </p>
 
         <div className="mfa-method-tabs">
@@ -113,54 +117,21 @@ export default function MFA() {
 
         {firstLogin && method === "authenticator" && (
           <div className="mfa-setup-content">
-            <div className="recommended-banner">
-              <strong>Recommended Method</strong>
-              <p>Most secure option for protecting your account</p>
+            <div className="qr-wrapper">
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrUrl || 'DineVibe')}`} alt="QR" />
             </div>
-
-            <div className="setup-step">
-              <p className="step-label">Step 1: Download an authenticator app</p>
-              <div className="app-grid">
-                <button className="app-store-btn">Google Authenticator <span>iOS & Android</span></button>
-                <button className="app-store-btn">Microsoft Authenticator <span>iOS & Android</span></button>
-              </div>
-            </div>
-
-            <div className="setup-step">
-              <p className="step-label">Step 2: Scan this QR code</p>
-              <div className="qr-wrapper">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrUrl || 'DineVibe-Setup')}`} 
-                  alt="MFA QR Code" 
-                />
-              </div>
-              <p className="manual-label">Or enter this code manually:</p>
-              <div className="manual-key">{manualKey || "JBSWY3DPEHPK3PXP"}</div>
-            </div>
-
-            <div className="setup-step"><p className="step-label">Step 3: Enter the 6-digit code</p></div>
+            <div className="manual-key">{manualKey || "JBSWY3DPEHPK3PXP"}</div>
           </div>
         )}
 
         <div className="verification-area">
           {error && <div className="auth-error">{error}</div>}
-          <label className="input-label">Verification Code</label>
           <div className="otp-container">
             {otp.map((digit, index) => (
-              <input
-                key={index}
-                id={`otp-${index}`}
-                type="text"
-                maxLength="1"
-                value={digit}
-                onChange={(e) => handleOtpChange(e.target.value, index)}
-                className="otp-input-square"
-              />
+              <input key={index} id={`otp-${index}`} type="text" maxLength="1" value={digit}
+                onChange={(e) => handleOtpChange(e.target.value, index)} className="otp-input-square" />
             ))}
           </div>
-          
-          <div className="demo-notice">Demo: Use code <strong>123456</strong> to continue</div>
-
           <button className="primary-btn full-width" onClick={handleVerify} disabled={loading || otp.join("").length !== 6}>
             {loading ? "Verifying..." : "Verify & Continue"}
           </button>
