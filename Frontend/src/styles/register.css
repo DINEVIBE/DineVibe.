@@ -1,0 +1,48 @@
+/* Import consistency from login */
+@import "./login.css";
+
+/* Specific overrides for Register if needed */
+.form-content {
+  max-width: 460px; /* Slightly wider for longer names */
+}
+
+.submit-btn {
+  background: #f97316; /* Maybe make register button orange to differentiate? Or keep Black */
+  transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+  background: #ea580c;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.2);
+}
+
+.submit-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Custom Phone Overrides for Register */
+.custom-phone .react-international-phone-input {
+  width: 100% !important;
+  height: 54px !important;
+  background: #f8fafc !important;
+  border: 1.5px solid #f1f5f9 !important;
+  border-left: none !important;
+  border-radius: 0 12px 12px 0 !important;
+  font-size: 16px !important;
+}
+
+.custom-phone .react-international-phone-country-selector-button {
+  height: 54px !important;
+  background: #f8fafc !important;
+  border: 1.5px solid #f1f5f9 !important;
+  border-radius: 12px 0 0 12px !important;
+}
+
+.custom-phone:focus-within .react-international-phone-input,
+.custom-phone:focus-within .react-international-phone-country-selector-button {
+  border-color: #f97316 !important;
+  background: #fff !important;
+}
